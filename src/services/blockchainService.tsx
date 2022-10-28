@@ -3,7 +3,7 @@ import { isTruthy } from '../util/util';
 const CryptoJS = require("crypto-js");
 
 import { getPublicWalletAddress } from './walletService';
-// import UserDataContract_Metis from '../smart_contracts/UserDataContract_Metis.json'; // TODO
+// import DataFactoryContract_Metis from '../smart_contracts/DataFactoryContract_Metis.json'; // TODO
 
 const pepperShaker = [
     "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
@@ -36,24 +36,25 @@ export const getUserData = async (password: string) => { // TODO: enhance perfor
         throw new Error("The environment failed you.");
     }
 
-    const key = await CryptoJS.SHA3(publicAddress + password + pepper + staticSalt).toString(); // TODO: Use Argon2id instead of SHA3.
-    const cipherText = await getCipherTextFromContract(publicAddress); // TODO: Solidity
+    const cipherText = await getCipherTextFromContractFactory(publicAddress); // TODO: Solidity
+    const key = await CryptoJS.SHA3(publicAddress + password + staticSalt).toString(); // TODO: Use Argon2id instead of SHA3 & add pepper.
 
-    const bytes: any = await decrypt(cipherText, key);
+    const bytes: any = await CryptoJS.AES.decrypt(cipherText + key);
     const dataString = bytes.toString(CryptoJS.enc.Utf8);
+    
     return JSON.parse(dataString);
 }
 
-const getCipherTextFromContract = async (publicAddress: string) => { // TODO: Secure the hash and Error handling.
+const getCipherTextFromContractFactory = async (publicAddress: string) => { // TODO: Secure the hash, Error handling and Promises.
     let dataLocation = CryptoJS.SHA3(publicAddress + staticSalt).toString(); // TODO: Use Argon2id instead of SHA3.
 
-    const contractAddress = UserDataContract_Metis["address"];
-    const contractABI = UserDataContract_Metis["abi"];
+    const contractAddress = DataFactoryContract_Metis["address"]; // You could hide the contract address in the environment.
+    const contractABI = DataFactoryContract_Metis["abi"]; // The ABI needs to be public so every one can verify the contract.
     
     const web3Provider = new ethers.providers.Web3Provider((window as any).ethereum);
-    const smartContract = new ethers.Contract(contractAddress, contractABI, web3Provider);
+    const smartContractFactory = new ethers.Contract(contractAddress, contractABI, web3Provider);
 
-    return await smartContract.getUserData(dataLocation); // TODO: located in a mapping where only msg.sender can retrieve and read the cipherText.
+    return await smartContractFactory.getUserData(dataLocation); // TODO: located in a mapping where only msg.sender can retrieve and read the cipherText.
 }
 
 // Attempting to write a pepper decrypter.
@@ -80,7 +81,9 @@ Inside the DataContract, there would be a mapping(string => string) private ciph
  - Where the first string is a SHA3 hash of the user's public address + static salt.
  - And the second string is the encrypted data (cipherText).
  - The mapping would also be flooded with fake data to make it harder to find the user's data.
- - The DataContract would only be accessible by its creator. (and hackers?)
+ - Only the owner would have instant access to the right cipherText.
+ - The DataContract would only be accessible & readable by its creator. (and hackers)
+ 
 
 
 

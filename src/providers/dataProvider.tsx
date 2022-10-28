@@ -3,7 +3,6 @@ import { fetchUtils } from 'react-admin';
 import { stringify } from 'query-string';
 
 import { QueryInterface } from "../interfaces/QueryInterface";
-import { getAllFoos } from '../services/fooService';
 import { getUserData } from "../services/blockchainService";
 
 const httpClient = fetchUtils.fetchJson;
@@ -25,9 +24,7 @@ const dataProvider: DataProvider = {
         };
         
         switch (resource) {
-            case "foos":
-                return await getAllFoos(query);
-
+            
             default:
                 return Promise.reject("Unknown resource");
         }
