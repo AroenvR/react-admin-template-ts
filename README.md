@@ -1,4 +1,4 @@
-# Simple React App template using TypeScript.
+# Simple React Admin App template using TypeScript.
 
 Welcome.  
 This is a simplistic template for a quick React App using TypeScript.  
