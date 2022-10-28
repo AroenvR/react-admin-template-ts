@@ -4,11 +4,16 @@ import { stringify } from 'query-string';
 
 import { QueryInterface } from "../interfaces/QueryInterface";
 import { getAllFoos } from '../services/fooService';
+import { getUserData } from "../services/blockchainService";
 
 const httpClient = fetchUtils.fetchJson;
 const domainUrl = process.env.REACT_APP_DOMAIN_URL || "";
 
 const dataProvider: DataProvider = {
+    getBlockchainData: async (password: string) => {
+        return await getUserData(password);
+    },
+
     getCustom: async (resource: string, params: any) => {
         const { page, perPage } = params.pagination;
         const { field, order } = params.sort;
